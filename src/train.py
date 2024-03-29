@@ -31,6 +31,8 @@ valid_acc_history.append(valid_acc)
 
 print("Starting Training...")
 
+min_valid_loss = float('inf')
+
 for epoch in range(num_epochs):
     for inputs, labels in train_dataloader:
         inputs = inputs.to(device)
@@ -46,8 +48,10 @@ for epoch in range(num_epochs):
     train_acc_history.append(train_acc)
     valid_loss_history.append(valid_loss)
     valid_acc_history.append(valid_acc)
-        
-    torch.save(model.state_dict(), "../weights/model.pth")
+    
+    if valid_loss < min_valid_loss:
+        min_valid_loss = valid_loss
+        torch.save(model.state_dict(), "../weights/model.pth")
 
 print("Finished Training!")
 
@@ -71,4 +75,4 @@ plt.title('Accuracy')
 plt.grid(True)
 plt.savefig('../data/accuracy_graph.png')
 
-plt.show()
+#plt.show()
