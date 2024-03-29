@@ -1,0 +1,4 @@
+venv
+*.code-workspace
+src/__pycache__
+dataset
