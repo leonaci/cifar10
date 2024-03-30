@@ -37,20 +37,9 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 64, 16, 16) -> (1, 256, 8, 8)
+        ## (1, 64, 16, 16) -> (1, 128, 8, 8)
         self.layer2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2),
-        )
-
-        ## (1, 256, 8, 8) -> (1, 128, 4, 4)
-        self.layer3 = nn.Sequential(
-            nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1),
@@ -59,14 +48,36 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 128, w, h) -> (1, 128, w, h)
-        self.conv1 = conv(128)
+        ## (1, 128, 8, 8) -> (1, 256, 4, 4)
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),
+        )
 
-        ## (1, 128, w, h) -> (1, 128, 1, 1)
+        ## (1, 256, w, h) -> (1, 256, w, h)
+        self.conv1 = conv(256)
+        
+        ## (1, 256, 4, 4) -> (1, 512, 2, 2)
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),
+        )
+
+        ## (1, 512, w, h) -> (1, 512, 1, 1)
         self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
 
-        ## (1, 128) -> (1, 10)
-        self.classifier = nn.Linear(128, 10)
+        ## (1, 512) -> (1, 10)
+        self.classifier = nn.Linear(512, 10)
         
         self.to(device)
 
@@ -75,6 +86,7 @@ class ImageClassifier(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = F.relu(self.conv1(x) + x)
+        x = self.layer4(x)
         x = self.global_pool(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)

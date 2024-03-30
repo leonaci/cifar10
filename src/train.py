@@ -57,6 +57,7 @@ print("Finished Training!")
 
 
 plt.figure(figsize=(8, 6))
+plt.ylim(0, 2.5)
 plt.plot(train_loss_history, label='train')
 plt.plot(valid_loss_history, label='valid')
 plt.xlabel('epochs')
