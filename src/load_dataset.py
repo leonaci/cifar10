@@ -24,12 +24,8 @@ def get_dataloader(split, batch_size):
 """
 
 train_transform = T.Compose([
-    T.RandomAffine(0, scale=(0.9, 1.1)),
+    T.RandomAffine([-10, 10], translate=(0.1, 0.1), scale=(0.9, 1.1)),
     T.RandomHorizontalFlip(p=0.5),
-    T.RandomVerticalFlip(p=0.5),
-    T.RandomRotation([90, 90]),
-    T.RandomRotation([180, 180]),
-    T.RandomRotation([270, 270]),
     T.ToTensor(),
     T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
 ])
