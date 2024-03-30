@@ -59,13 +59,11 @@ class ImageClassifier(nn.Module):
         ## (1, 128, w, h) -> (1, 128, w, h)
         self.conv1 = conv(128)
 
-        ## (1, 128 * 4 * 4) -> (1, 10)
-        self.classifier = nn.Sequential(
-            nn.Linear(128 * 4 * 4, 256),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(256, 10)
-        )
+        ## (1, 128, w, h) -> (1, 128, 1, 1)
+        self.global_pool = nn.AdaptiveMaxPool2d((1, 1))
+
+        ## (1, 128) -> (1, 10)
+        self.classifier = nn.Linear(128, 10)
         
         self.to(device)
 
@@ -74,6 +72,7 @@ class ImageClassifier(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = F.relu(self.conv1(x) + x)
+        x = self.global_pool(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
