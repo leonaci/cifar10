@@ -60,7 +60,7 @@ class ImageClassifier(nn.Module):
         self.conv1 = conv(128)
 
         ## (1, 128, w, h) -> (1, 128, 1, 1)
-        self.global_pool = nn.AdaptiveMaxPool2d((1, 1))
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         ## (1, 128) -> (1, 10)
         self.classifier = nn.Linear(128, 10)
