@@ -61,10 +61,9 @@ class ImageClassifier(nn.Module):
 
         ## (1, 128 * 4 * 4) -> (1, 10)
         self.classifier = nn.Sequential(
-            nn.Linear(128 * 4 * 4, 512),
+            nn.Linear(128 * 4 * 4, 256),
             nn.ReLU(inplace=True),
-            nn.Linear(512, 256),
-            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
             nn.Linear(256, 10)
         )
         
