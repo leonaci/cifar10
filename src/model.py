@@ -8,15 +8,12 @@ def conv(channels, kernel_size=3):
         raise ValueError("Kernel size must be odd!")
 
     return nn.Sequential(
+        nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1),
         nn.BatchNorm2d(channels),
         nn.ReLU(inplace=True),
-        nn.Conv2d(in_channels=channels, out_channels=channels//4, kernel_size=1),
-        nn.BatchNorm2d(channels//4),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(in_channels=channels//4, out_channels=channels//4, kernel_size=3, padding=1),
-        nn.BatchNorm2d(channels//4),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(in_channels=channels//4, out_channels=channels, kernel_size=1),
+        nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1),
+        nn.BatchNorm2d(channels),
+        nn.ReLU(inplace=True)
     )
 
 class ImageClassifier(nn.Module):
