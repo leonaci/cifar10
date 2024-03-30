@@ -56,8 +56,8 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 256, w, h) -> (1, 256, w, h)
-        self.conv1 = conv(256)
+        ## (1, 128, w, h) -> (1, 128, w, h)
+        self.conv1 = conv(128)
 
         ## (1, 128 * 4 * 4) -> (1, 10)
         self.classifier = nn.Sequential(
@@ -73,8 +73,8 @@ class ImageClassifier(nn.Module):
     def forward(self, x):
         x = self.layer1(x)
         x = self.layer2(x)
-        x = F.relu(self.conv1(x) + x)
         x = self.layer3(x)
+        x = F.relu(self.conv1(x) + x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
