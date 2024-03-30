@@ -2,6 +2,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+## (1, channels, w, h) -> (1, channels, w, h)
+def conv(channels, kernel_size=3):
+    if kernel_size % 2 == 0:
+        raise ValueError("Kernel size must be odd!")
+
+    return nn.Sequential(
+        nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1),
+        nn.BatchNorm2d(channels),
+        nn.ReLU(inplace=True),
+        nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1),
+        nn.BatchNorm2d(channels),
+        nn.ReLU(inplace=True)
+    )
+
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
@@ -42,6 +56,9 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
+        ## (1, 256, w, h) -> (1, 256, w, h)
+        self.conv1 = conv(256)
+
         ## (1, 128 * 4 * 4) -> (1, 10)
         self.classifier = nn.Sequential(
             nn.Linear(128 * 4 * 4, 512),
@@ -56,6 +73,7 @@ class ImageClassifier(nn.Module):
     def forward(self, x):
         x = self.layer1(x)
         x = self.layer2(x)
+        x = F.relu(self.conv1(x) + x)
         x = self.layer3(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
