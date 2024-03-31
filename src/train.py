@@ -3,31 +3,10 @@ import torch.nn as nn
 import torch.optim as optim
 from load_dataset import get_dataloader
 from model import ImageClassifier
-from evaluate import evaluate
-import matplotlib.pyplot as plt
+from evaluate import Evaluator
+import time
 
-def save_graph(num_epochs):
-    plt.figure(figsize=(8, 6))
-    plt.xlim(0, num_epochs)
-    plt.ylim(0, 2.5)
-    plt.plot(train_loss_history, label='train')
-    plt.plot(valid_loss_history, label='valid')
-    plt.xlabel('epochs')
-    plt.ylabel('loss')
-    plt.title('Loss')
-    plt.grid(True)
-    plt.savefig('../data/loss_graph.png')
-
-    plt.figure(figsize=(8, 6))
-    plt.xlim(0, num_epochs)
-    plt.ylim(0, 100)
-    plt.plot(train_acc_history, label='train')
-    plt.plot(valid_acc_history, label='valid')
-    plt.xlabel('epochs')
-    plt.ylabel('accuracy')
-    plt.title('Accuracy')
-    plt.grid(True)
-    plt.savefig('../data/accuracy_graph.png')
+num_epochs = 50
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -39,25 +18,20 @@ model = ImageClassifier()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-train_loss_history = []
-train_acc_history = []
-valid_loss_history = []
-valid_acc_history = []
+evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, num_epochs)
 
-num_epochs = 50
-
-train_loss, train_acc, valid_loss, valid_acc = evaluate(model, train_dataloader, valid_dataloader, criterion)
-train_loss_history.append(train_loss)
-train_acc_history.append(train_acc)
-valid_loss_history.append(valid_loss)
-valid_acc_history.append(valid_acc)
+evaluator.eval()
 
 print("Starting Training...")
 
-min_valid_loss = float('inf')
-
 for epoch in range(num_epochs):
-    print(f"---> Epoch {epoch + 1}")
+    model.train()
+    print(f"---> Epoch {epoch + 1}, lr = {optimizer.param_groups[0]['lr']:.2e}")
+    start_time = time.time()
+    running_loss = 0.0
+    train_acc = 0.0
+    total = 0
+
     for inputs, labels in train_dataloader:
         inputs = inputs.to(device)
         labels = labels.to(device)
@@ -66,16 +40,11 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-    train_loss, train_acc, valid_loss, valid_acc = evaluate(model, train_dataloader, valid_dataloader, criterion)
-    train_loss_history.append(train_loss)
-    train_acc_history.append(train_acc)
-    valid_loss_history.append(valid_loss)
-    valid_acc_history.append(valid_acc)
-    save_graph(num_epochs)
-    
-    if valid_loss < min_valid_loss:
-        min_valid_loss = valid_loss
-        torch.save(model.state_dict(), "../weights/model.pth")
+        running_loss += loss.item()
+        _, predicted = torch.max(outputs.data, 1)
+        train_acc += (predicted == labels).sum().item()
+        total += labels.size(0)
+    end_time = time.time()
+    evaluator.eval((end_time - start_time, running_loss, train_acc / total))
 
 print("Finished Training!")
-plt.show()
