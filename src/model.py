@@ -23,7 +23,7 @@ class ImageClassifier(nn.Module):
         self.layer1 = ResNetBlock(in_channels=64, out_channels=128, stride=2, short=False)
 
         ## (batch_size, 128, 8, 8) -> (batch_size, 256, 4, 4)
-        self.layer2 = ResNetBlock(in_channels=128, out_channels=256, stride=2, short=False)
+        self.layer2 = ResNetBlock(in_channels=128, out_channels=256, stride=2)
 
         ## (batch_size, 256, 4, 4) -> (batch_size, 512, 2, 2)
         self.layer3 = ResNetBlock(in_channels=256, out_channels=512, stride=2)
