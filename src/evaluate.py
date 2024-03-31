@@ -50,7 +50,7 @@ class Evaluator:
             total += labels.size(0)
         end_time = time.time()
 
-        return end_time - start_time, running_loss / len(dataloader), 100 * num_correct  / total
+        return 1000 * (end_time - start_time) / len(dataloader), running_loss / len(dataloader), 100 * num_correct  / total
 
     def eval_model(self, dataloader):
         self.model.eval()
@@ -71,7 +71,7 @@ class Evaluator:
             total += labels.size(0)
         end_time = time.time()
 
-        return end_time - start_time, running_loss / len(dataloader), 100 * num_correct / total
+        return 1000 * (end_time - start_time) / len(dataloader), running_loss / len(dataloader), 100 * num_correct / total
 
     def output_stats(self, train_result:Tuple[float, float, float]):
         self.model.eval()
@@ -79,10 +79,10 @@ class Evaluator:
         train_time, train_loss, train_acc = train_result
         eval_time, valid_loss, valid_acc = self.eval_model(self.valid_dataloader)
 
-        print(f"    Train Time: {train_time:.2f}sec")
+        print(f"    Train Time: {train_time:.2f}ms")
         print(f"    Train Loss: {train_loss:.4f}")
         print(f"    Train Accuracy: {train_acc:.2f}%")
-        print(f"    Eval Time: {eval_time:.2f}sec")
+        print(f"    Eval Time: {eval_time:.2f}ms")
         print(f"    Valid Loss: {valid_loss:.4f}")
         print(f"    Valid Accuracy: {valid_acc:.2f}%")
 
