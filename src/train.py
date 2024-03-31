@@ -6,9 +6,9 @@ from model import ImageClassifier
 from evaluate import Evaluator
 
 num_epochs = 100
-batch_size = 32
+batch_size = 128
 initial_lr = 0.01
-depth = 2
+depth = 6
 
 train_dataloader = get_dataloader("train", batch_size=batch_size)
 valid_dataloader = get_dataloader("valid", batch_size=batch_size)
