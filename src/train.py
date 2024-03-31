@@ -34,6 +34,7 @@ print("Starting Training...")
 min_valid_loss = float('inf')
 
 for epoch in range(num_epochs):
+    print(f"---> Epoch {epoch + 1}")
     for inputs, labels in train_dataloader:
         inputs = inputs.to(device)
         labels = labels.to(device)
@@ -42,7 +43,6 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-    print(f"---> Epoch {epoch + 1}")
     train_loss, train_acc, valid_loss, valid_acc = evaluate(model, train_dataloader, valid_dataloader, criterion)
     train_loss_history.append(train_loss)
     train_acc_history.append(train_acc)
