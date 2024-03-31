@@ -3,11 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from resnet import ResNetBlock
 
-depth = 6
-
 class ImageClassifier(nn.Module):
-    def __init__(self):
+    def __init__(self, depth=2):
         super(ImageClassifier, self).__init__()
+
+        self.depth = depth
 
         ## (batch_size, channels, w, h) -> (batch_size, channels, w // 2, h // 2)
         self.maxpool = nn.MaxPool2d(kernel_size=2)
@@ -29,7 +29,7 @@ class ImageClassifier(nn.Module):
         self.layer1 = ResNetBlock(in_channels=64, out_channels=128, stride=2)
 
         layers = []
-        for _ in range(depth):
+        for _ in range(self.depth):
             layers.append(ResNetBlock(in_channels=128, out_channels=128))
         
         ## (batch_size, 128, 8, 8) -> (batch_size, 128, 8, 8)
@@ -39,7 +39,7 @@ class ImageClassifier(nn.Module):
         self.layer2 = ResNetBlock(in_channels=128, out_channels=256, stride=2)
 
         layers = []
-        for _ in range(depth):
+        for _ in range(self.depth):
             layers.append(ResNetBlock(in_channels=256, out_channels=256))
         
         ## (batch_size, 256, 4, 4) -> (batch_size, 256, 4, 4)
@@ -49,7 +49,7 @@ class ImageClassifier(nn.Module):
         self.layer3 = ResNetBlock(in_channels=256, out_channels=512, stride=2)
 
         layers = []
-        for _ in range(depth):
+        for _ in range(self.depth):
             layers.append(ResNetBlock(in_channels=512, out_channels=512))
 
         ## (batch_size, 512, 2, 2) -> (batch_size, 512, 2, 2)
