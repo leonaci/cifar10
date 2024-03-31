@@ -4,49 +4,33 @@ import torch.optim as optim
 from load_dataset import get_dataloader
 from model import ImageClassifier
 from evaluate import Evaluator
-import time
 
 num_epochs = 100
+batch_size = 32
+initial_lr = 0.01
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-train_dataloader = get_dataloader("train", batch_size=32)
-valid_dataloader = get_dataloader("valid", batch_size=32)
+train_dataloader = get_dataloader("train", batch_size=batch_size)
+valid_dataloader = get_dataloader("valid", batch_size=batch_size)
 
 model = ImageClassifier()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.01)
+optimizer = optim.Adam(model.parameters(), lr=initial_lr)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, eps=1e-24)
 
-evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, num_epochs)
+evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs)
 
-evaluator.eval()
+evaluator.output_stats(evaluator.eval_model(train_dataloader))
 
 print("Starting Training...")
 
 for epoch in range(num_epochs):
-    model.train()
     print(f"---> Epoch {epoch + 1}, lr = {optimizer.param_groups[0]['lr']:.2e}")
-    start_time = time.time()
-    running_loss = 0.0
-    train_acc = 0.0
-    total = 0
 
-    for inputs, labels in train_dataloader:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-        running_loss += loss.item()
-        _, predicted = torch.max(outputs.data, 1)
-        train_acc += (predicted == labels).sum().item()
-        total += labels.size(0)
-    end_time = time.time()
-    evaluator.eval((end_time - start_time, running_loss, train_acc / total))
-    scheduler.step(running_loss)
+    _, train_loss, _ = train_result = evaluator.train_model()
+
+    evaluator.output_stats(train_result)
+
+    scheduler.step(train_loss)
 
 print("Finished Training!")

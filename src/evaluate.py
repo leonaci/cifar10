@@ -1,14 +1,16 @@
 from typing import Tuple
 import torch
 import matplotlib.pyplot as plt
+import time
 
 class Evaluator:
-    def __init__(self, model, train_dataloader, valid_dataloader, criterion, num_epochs):
+    def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = model
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
         self.criterion = criterion
+        self.optimizer = optimizer
         self.num_epochs = num_epochs
         
         self.train_loss_history = []
@@ -17,34 +19,64 @@ class Evaluator:
         self.valid_acc_history = []
         self.min_valid_loss = float('inf')
 
-    def eval(self, train_result:Tuple[float, float, float] = None):
-        self.model.eval()
+    def train_model(self):
+        self.model.train()
 
-        train_loss = 0.0
-        train_acc = 0.0
+        dataloader = self.train_dataloader
+        running_loss = 0.0; num_correct = 0.0; total = 0
 
-        if train_result is not None:
-            train_time = train_result[0]
-            train_loss = train_result[1] / len(self.train_dataloader)
-            train_acc = 100 * train_result[2]
-            print(f"    Train Time: {train_time:.2f}s")
-            print(f"    Train Loss: {train_loss:.4f}")
-            print(f"    Train Accuracy: {train_acc:.2f}%")
-
-        valid_loss:float = 0.0
-        valid_acc:float = 0.0
-        total:int = 0
-
-        for inputs, labels in self.valid_dataloader:
+        start_time = time.time()
+        for inputs, labels in dataloader:
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
+
+            self.optimizer.zero_grad()
+
             outputs = self.model(inputs)
-            valid_loss += self.criterion(outputs, labels).item()
+            loss = self.criterion(outputs, labels)
+            running_loss += loss.item()
+
+            loss.backward()
+            self.optimizer.step()
+
             _, predicted = torch.max(outputs.data, 1)
-            valid_acc += (predicted == labels).sum().item()
+            num_correct += (predicted == labels).sum().item()
             total += labels.size(0)
-        valid_loss = valid_loss / len(self.valid_dataloader)
-        valid_acc = 100 * valid_acc / total
+        end_time = time.time()
+
+        return end_time - start_time, running_loss / len(dataloader), 100 * num_correct  / total
+
+    def eval_model(self, dataloader):
+        self.model.eval()
+
+        running_loss = 0.0; num_correct = 0.0; total = 0
+
+        start_time = time.time()
+        for inputs, labels in dataloader:
+            inputs = inputs.to(self.device)
+            labels = labels.to(self.device)
+
+            outputs = self.model(inputs)
+            loss = self.criterion(outputs, labels)
+            running_loss += loss.item()
+
+            _, predicted = torch.max(outputs.data, 1)
+            num_correct += (predicted == labels).sum().item()
+            total += labels.size(0)
+        end_time = time.time()
+
+        return end_time - start_time, running_loss / len(dataloader), 100 * num_correct / total
+
+    def output_stats(self, train_result:Tuple[float, float, float]):
+        self.model.eval()
+
+        train_time, train_loss, train_acc = train_result
+        eval_time, valid_loss, valid_acc = self.eval_model(self.valid_dataloader)
+
+        print(f"    Train Time: {train_time:.2f}sec")
+        print(f"    Train Loss: {train_loss:.4f}")
+        print(f"    Train Accuracy: {train_acc:.2f}%")
+        print(f"    Eval Time: {eval_time:.2f}sec")
         print(f"    Valid Loss: {valid_loss:.4f}")
         print(f"    Valid Accuracy: {valid_acc:.2f}%")
 
@@ -55,13 +87,14 @@ class Evaluator:
             except IOError as e:
                 print(f"saving model failed: {e}")
 
-        self._save_graph(float(train_loss) , train_acc, float(valid_loss), valid_acc)
-
-    def _save_graph(self, train_loss, train_acc, valid_loss, valid_acc):
         self.train_loss_history.append(train_loss)
         self.train_acc_history.append(train_acc)
         self.valid_loss_history.append(valid_loss)
         self.valid_acc_history.append(valid_acc)
+
+        self._save_graph()
+
+    def _save_graph(self):
 
         fig, ax1 = plt.subplots(figsize=(8, 6))
         ax2 = ax1.twinx()
