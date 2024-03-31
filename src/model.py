@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-## (1, channels, w, h) -> (1, channels, w, h)
+## (batch_size, channels, w, h) -> (batch_size, channels, w, h)
 def conv(channels, kernel_size=3):
     if kernel_size % 2 == 0:
         raise ValueError("Kernel size must be odd!")
@@ -23,7 +23,7 @@ class ImageClassifier(nn.Module):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
         
-        ## (1, 3, 32, 32) -> (1, 64, 16, 16)
+        ## (batch_size, 3, 32, 32) -> (batch_size, 64, 16, 16)
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32, kernel_size=5, padding=2),
             nn.BatchNorm2d(32),
@@ -34,7 +34,7 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 64, 16, 16) -> (1, 128, 8, 8)
+        ## (batch_size, 64, 16, 16) -> (batch_size, 128, 8, 8)
         self.layer2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
@@ -45,7 +45,7 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 128, 8, 8) -> (1, 256, 4, 4)
+        ## (batch_size, 128, 8, 8) -> (batch_size, 256, 4, 4)
         self.layer3 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
@@ -56,10 +56,10 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 256, w, h) -> (1, 256, w, h)
+        ## (batch_size, 256, w, h) -> (batch_size, 256, w, h)
         self.conv1 = conv(256)
         
-        ## (1, 256, 4, 4) -> (1, 512, 2, 2)
+        ## (batch_size, 256, 4, 4) -> (batch_size, 512, 2, 2)
         self.layer4 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
@@ -70,10 +70,10 @@ class ImageClassifier(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
 
-        ## (1, 512, w, h) -> (1, 512, 1, 1)
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+        ## (batch_size, 512, w, h) -> (batch_size, 512, 1, 1)
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
-        ## (1, 512) -> (1, 10)
+        ## (batch_size, 512) -> (batch_size, 10)
         self.classifier = nn.Linear(512, 10)
         
         self.to(device)
@@ -84,7 +84,7 @@ class ImageClassifier(nn.Module):
         x = self.layer3(x)
         x = F.relu(self.conv1(x) + x)
         x = self.layer4(x)
-        x = self.global_pool(x)
-        x = x.view(x.size(0), -1)
+        x = self.avg_pool(x)
+        x = x.flatten(1)
         x = self.classifier(x)
         return x
