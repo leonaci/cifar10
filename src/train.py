@@ -6,7 +6,7 @@ from model import ImageClassifier
 from evaluate import Evaluator
 import time
 
-num_epochs = 50
+num_epochs = 100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -16,7 +16,8 @@ valid_dataloader = get_dataloader("valid", batch_size=32)
 model = ImageClassifier()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=0, eps=1e-24)
 
 evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, num_epochs)
 
@@ -46,5 +47,6 @@ for epoch in range(num_epochs):
         total += labels.size(0)
     end_time = time.time()
     evaluator.eval((end_time - start_time, running_loss, train_acc / total))
+    scheduler.step(running_loss)
 
 print("Finished Training!")
