@@ -19,7 +19,14 @@ class ImageClassifier(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         ## (batch_size, 3, 32, 32) -> (batch_size, 64, 16, 16)
-        self.input_layer = ResNetBlock(in_channels=3, out_channels=64, stride=2, short=False)
+        self.input_layer = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+        )
 
         ## (batch_size, 64, 16, 16) -> (batch_size, 128, 8, 8)
         self.layer1 = ResNetBlock(in_channels=64, out_channels=128, stride=2)
@@ -53,13 +60,25 @@ class ImageClassifier(nn.Module):
 
         ## (batch_size, 512) -> (batch_size, 10)
         self.classifier = nn.Linear(512, 10)
-        
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+        for m in self.modules():
+            if isinstance(m, ResNetBlock):
+               nn.init.constant_(m.bn2.weight, 0)
+
         self.to(device)
 
     def forward(self, x):
         x = self.input_layer(x)
 
         x = self.layer1(x)
+        x = self.maxpool(x)
         x = self.conv1(x)
         x = self.layer2(x)
         x = self.conv2(x)
