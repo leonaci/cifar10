@@ -110,15 +110,17 @@ class Evaluator:
         valid_loss_line = ax1.plot(self.valid_loss_history, linewidth=2, color='#B2D732', label='Valid Loss')
         ax1.set_xlabel('Epochs')
         ax1.set_ylabel('Loss')
-        ax1.set_xlim(1, self.num_epochs)
-        ax1.set_ylim(ymax=1)
-        ax1.grid(True)
+        ax1.set_xlim(0, self.num_epochs)
+        ax1.set_ylim(0, 1)
+        # ax1.set_ylim(ymax=1)
+        # ax1.set_yscale('log')
 
         train_acc_line = ax2.plot(self.train_acc_history, linewidth=1, linestyle="dashed", color='#FD7F20', label='Train Accuracy')
         valid_acc_line = ax2.plot(self.valid_acc_history, linewidth=1, linestyle="dashed", color='#87CB16', label='Valid Accuracy')
         ax2.set_ylabel('Accuracy')
-        ax2.set_xlim(1, self.num_epochs)
+        ax2.set_xlim(0, self.num_epochs)
         ax2.set_ylim(0, 100)
+        ax2.grid(True)
 
         lines = train_loss_line + valid_loss_line + train_acc_line + valid_acc_line
         labels = map(lambda line: line.get_label(), lines)
