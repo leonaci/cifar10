@@ -42,8 +42,7 @@ class ImageClassifier(nn.Module):
 
         x = self.layer3(x)
 
-        x = self.avg_pool(x)
-        x = x.flatten(1)
+        x = self.avg_pool(x).flatten(1)
 
         x = self.classifier(x)
         return x
