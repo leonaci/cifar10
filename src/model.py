@@ -82,7 +82,6 @@ class ImageClassifier(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = F.relu(self.conv1(x) + x)
         x = self.layer4(x)
         x = self.avg_pool(x)
         x = x.flatten(1)
