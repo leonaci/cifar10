@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from resnet import ResNetBlock
 
+depth = 2
+
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
@@ -22,11 +24,32 @@ class ImageClassifier(nn.Module):
         ## (batch_size, 64, 16, 16) -> (batch_size, 128, 8, 8)
         self.layer1 = ResNetBlock(in_channels=64, out_channels=128, stride=2)
 
+        layers = []
+        for _ in range(depth):
+            layers.append(ResNetBlock(in_channels=128, out_channels=128))
+        
+        ## (batch_size, 128, 8, 8) -> (batch_size, 128, 8, 8)
+        self.conv1 = nn.Sequential(*layers)
+
         ## (batch_size, 128, 8, 8) -> (batch_size, 256, 4, 4)
         self.layer2 = ResNetBlock(in_channels=128, out_channels=256, stride=2)
 
+        layers = []
+        for _ in range(depth):
+            layers.append(ResNetBlock(in_channels=256, out_channels=256))
+        
+        ## (batch_size, 256, 4, 4) -> (batch_size, 256, 4, 4)
+        self.conv2 = nn.Sequential(*layers)
+
         ## (batch_size, 256, 4, 4) -> (batch_size, 512, 2, 2)
         self.layer3 = ResNetBlock(in_channels=256, out_channels=512, stride=2)
+
+        layers = []
+        for _ in range(depth):
+            layers.append(ResNetBlock(in_channels=512, out_channels=512))
+
+        ## (batch_size, 512, 2, 2) -> (batch_size, 512, 2, 2)
+        self.conv3 = nn.Sequential(*layers)
 
         ## (batch_size, 512) -> (batch_size, 10)
         self.classifier = nn.Linear(512, 10)
@@ -37,11 +60,11 @@ class ImageClassifier(nn.Module):
         x = self.input_layer(x)
 
         x = self.layer1(x)
-
+        x = self.conv1(x)
         x = self.layer2(x)
-
+        x = self.conv2(x)
         x = self.layer3(x)
-
+        x = self.conv3(x)
         x = self.avg_pool(x).flatten(1)
 
         x = self.classifier(x)
