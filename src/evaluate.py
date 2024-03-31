@@ -7,6 +7,9 @@ import time
 class Evaluator:
     def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        print(f"Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
+
         self.model = model
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
@@ -19,6 +22,8 @@ class Evaluator:
         self.valid_loss_history = []
         self.valid_acc_history = []
         self.min_valid_loss = float('inf')
+
+        model.to(self.device)
 
     def train_model(self):
         self.model.train()

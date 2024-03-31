@@ -8,9 +8,6 @@ depth = 6
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
-        
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
 
         ## (batch_size, channels, w, h) -> (batch_size, channels, w // 2, h // 2)
         self.maxpool = nn.MaxPool2d(kernel_size=2)
@@ -71,8 +68,6 @@ class ImageClassifier(nn.Module):
         for m in self.modules():
             if isinstance(m, ResNetBlock):
                nn.init.constant_(m.bn2.weight, 0)
-
-        self.to(device)
 
     def forward(self, x):
         x = self.input_layer(x)

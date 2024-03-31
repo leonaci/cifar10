@@ -6,15 +6,11 @@ import torchvision.transforms as T
 """
 def get_dataloader(split, batch_size):
     from dataset import CIFAR10
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
-    
+
     shuffle = True if phase == 'train' else False
     transform = T.Compose([
         T.ToTensor(),
         T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        T.Lambda(lambda x: x.to(device))
     ])
     
     train_dataset = CIFAR10(transform=transform, split=split)
@@ -37,9 +33,7 @@ valid_transform = T.Compose([
 
 def get_dataloader(phase, batch_size):
     from torchvision.datasets import CIFAR10
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
+
     train = True if phase == 'train' else False
     shuffle = True if phase == 'train' else False
     transform = train_transform if phase == 'train' else valid_transform
