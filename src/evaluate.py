@@ -1,6 +1,7 @@
 from typing import Tuple
 import torch
 import matplotlib.pyplot as plt
+import csv
 import time
 
 class Evaluator:
@@ -93,6 +94,7 @@ class Evaluator:
         self.valid_acc_history.append(valid_acc)
 
         self._save_graph()
+        self._save_csv()
 
     def _save_graph(self):
 
@@ -120,3 +122,19 @@ class Evaluator:
         plt.title('Loss and Accuracy')
         plt.savefig('../data/loss_and_accuracy.png')
         plt.close()
+
+    def _save_csv(self):
+        with open('../data/loss_and_accuracy.csv', 'w', newline='') as csvfile:
+            fieldnames = ['epoch', 'train_loss', 'valid_loss', 'train_accuracy', 'valid_accuracy']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+            epochs = range(0, len(self.train_loss_history) + 1)
+            for epoch, train_loss, valid_loss, train_acc, valid_acc in zip(epochs, self.train_loss_history, self.valid_loss_history, self.train_acc_history, self.valid_acc_history):
+                writer.writerow({
+                    'epoch': epoch,
+                    'train_loss': train_loss,
+                    'valid_loss': valid_loss,
+                    'train_accuracy': train_acc,
+                    'valid_accuracy': valid_acc,
+                })
