@@ -6,6 +6,29 @@ from model import ImageClassifier
 from evaluate import evaluate
 import matplotlib.pyplot as plt
 
+def save_graph(num_epochs):
+    plt.figure(figsize=(8, 6))
+    plt.xlim(0, num_epochs)
+    plt.ylim(0, 2.5)
+    plt.plot(train_loss_history, label='train')
+    plt.plot(valid_loss_history, label='valid')
+    plt.xlabel('epochs')
+    plt.ylabel('loss')
+    plt.title('Loss')
+    plt.grid(True)
+    plt.savefig('../data/loss_graph.png')
+
+    plt.figure(figsize=(8, 6))
+    plt.xlim(0, num_epochs)
+    plt.ylim(0, 100)
+    plt.plot(train_acc_history, label='train')
+    plt.plot(valid_acc_history, label='valid')
+    plt.xlabel('epochs')
+    plt.ylabel('accuracy')
+    plt.title('Accuracy')
+    plt.grid(True)
+    plt.savefig('../data/accuracy_graph.png')
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 train_dataloader = get_dataloader("train", batch_size=32)
@@ -48,32 +71,11 @@ for epoch in range(num_epochs):
     train_acc_history.append(train_acc)
     valid_loss_history.append(valid_loss)
     valid_acc_history.append(valid_acc)
+    save_graph(num_epochs)
     
     if valid_loss < min_valid_loss:
         min_valid_loss = valid_loss
         torch.save(model.state_dict(), "../weights/model.pth")
 
 print("Finished Training!")
-
-
-plt.figure(figsize=(8, 6))
-plt.ylim(0, 2.5)
-plt.plot(train_loss_history, label='train')
-plt.plot(valid_loss_history, label='valid')
-plt.xlabel('epochs')
-plt.ylabel('loss')
-plt.title('Loss')
-plt.grid(True)
-plt.savefig('../data/loss_graph.png')
-
-plt.figure(figsize=(8, 6))
-plt.ylim(0, 100)
-plt.plot(train_acc_history, label='train')
-plt.plot(valid_acc_history, label='valid')
-plt.xlabel('epochs')
-plt.ylabel('accuracy')
-plt.title('Accuracy')
-plt.grid(True)
-plt.savefig('../data/accuracy_graph.png')
-
-#plt.show()
+plt.show()
