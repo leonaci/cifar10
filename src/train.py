@@ -8,7 +8,7 @@ from evaluate import Evaluator
 num_epochs = 100
 batch_size = 32
 initial_lr = 0.01
-depth = 6
+depth = 2
 
 train_dataloader = get_dataloader("train", batch_size=batch_size)
 valid_dataloader = get_dataloader("valid", batch_size=batch_size)
