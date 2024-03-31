@@ -17,7 +17,7 @@ model = ImageClassifier()
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.01)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=0, eps=1e-24)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, eps=1e-24)
 
 evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, num_epochs)
 

@@ -72,7 +72,7 @@ class Evaluator:
         ax1.set_ylabel('Loss')
         ax1.set_yscale('log')
         ax1.set_xlim(1, self.num_epochs)
-        ax1.set_ylim(ymax=1)
+        ax1.set_ylim(1e-3, 1)
         ax1.grid(True)
         ax1.legend(loc='upper left')
 

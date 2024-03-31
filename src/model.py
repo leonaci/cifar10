@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from resnet import ResNetBlock
 
-depth = 2
+depth = 4
 
 class ImageClassifier(nn.Module):
     def __init__(self):
