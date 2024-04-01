@@ -8,9 +8,9 @@ import argparse
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--csv-path", type=str, default="loss_and_error")
-argparser.add_argument("--csv-suffix", type=str, default="")
 argparser.add_argument("--plot-path", type=str, default="loss_and_error")
-argparser.add_argument("--plot-suffix", type=str, default="")
+argparser.add_argument("--weight-path", type=str, default="model")
+argparser.add_argument("--suffix", type=str, default="")
 
 args = argparser.parse_args()
 
@@ -33,7 +33,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=initial_lr)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[num_epochs//2, num_epochs//4*3], gamma=0.1)
 
-evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs)
+evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs, args)
 
 evaluator.output_stats(evaluator.eval_model(train_dataloader))
 

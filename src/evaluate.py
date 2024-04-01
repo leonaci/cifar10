@@ -16,9 +16,12 @@ class Evaluator:
         self.criterion = criterion
         self.optimizer = optimizer
         self.num_epochs = num_epochs
-        self.csv_path = f"../data/{args.csv_path}-{args.suffix}.csv"
-        self.plot_path = f"../data/{args.plot_path}-{args.suffix}.png"
-        
+
+        suffix = "" if args.suffix == '' else f"-{args.suffix}"
+        self.csv_path = f"../data/{args.csv_path}{suffix}.csv"
+        self.plot_path = f"../data/{args.plot_path}{suffix}.png"
+        self.weight_path = f"../weights/{args.weight_path}{suffix}.pth"
+
         self.train_loss_history = []
         self.train_err_history = []
         self.valid_loss_history = []
@@ -135,11 +138,11 @@ class Evaluator:
         plt.legend(lines, labels, loc='lower left')
 
         plt.title('Loss and Error')
-        plt.savefig(f"{self.output_dir}/{self.plot_path}")
+        plt.savefig(self.plot_path)
         plt.close()
 
     def _save_csv(self):
-        with open(f"{self.output_dir}/{self.csv_path}", 'w', newline='') as csvfile:
+        with open(self.csv_path, 'w', newline='') as csvfile:
             fieldnames = ['epoch', 'train_loss', 'valid_loss', 'train_error', 'valid_error']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
