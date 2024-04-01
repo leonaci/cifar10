@@ -102,23 +102,29 @@ class Evaluator:
         self._save_csv()
 
     def _save_graph(self):
+        num_batches = len(self.train_dataloader)
 
         fig, ax1 = plt.subplots(figsize=(8, 6))
         ax2 = ax1.twinx()
 
-        train_loss_line = ax1.plot(self.train_loss_history, linewidth=2, alpha=0.5, color='#FDB813', label='Train Loss')
-        valid_loss_line = ax1.plot(self.valid_loss_history, linewidth=2, alpha=0.5, color='#B2D732', label='Valid Loss')
-        ax1.set_xlabel('Epochs')
+        train_loss_line = ax1.plot(_lerp_data(self.train_loss_history, num_batches), linewidth=2, alpha=0.5, color='#FDB813', label='Train Loss')
+        valid_loss_line = ax1.plot(_lerp_data(self.valid_loss_history, num_batches), linewidth=2, alpha=0.5, color='#B2D732', label='Valid Loss')
+        ax1.set_xlabel('Iterations (10^4)')
         ax1.set_ylabel('Loss')
-        ax1.set_xlim(0, self.num_epochs)
+        ax1.set_xlim(0, self.num_epochs * num_batches)
         ax1.set_ylim(0, 1)
         # ax1.set_ylim(ymax=1)
         # ax1.set_yscale('log')
 
-        train_err_line = ax2.plot(self.train_err_history, linewidth=1, linestyle="dashed", color='#FD7F20', label='Train Error')
-        valid_err_line = ax2.plot(self.valid_err_history, linewidth=1, linestyle="dashed", color='#87CB16', label='Valid Error')
+        xticks = ax1.get_xticks()
+        xtick_labels = map(lambda tick : int(tick / 1000) / 10, xticks)
+        ax1.set_xticks(xticks)
+        ax1.set_xticklabels(xtick_labels)
+
+        train_err_line = ax2.plot(_lerp_data(self.train_err_history, num_batches), linewidth=1, linestyle="dashed", color='#FD7F20', label='Train Error')
+        valid_err_line = ax2.plot(_lerp_data(self.valid_err_history, num_batches), linewidth=1, linestyle="dashed", color='#87CB16', label='Valid Error')
         ax2.set_ylabel('Error')
-        ax2.set_xlim(0, self.num_epochs)
+        ax2.set_xlim(0, self.num_epochs * num_batches)
         ax2.set_ylim(0, 50)
         ax2.grid(True)
 
@@ -145,3 +151,19 @@ class Evaluator:
                     'train_error': train_err,
                     'valid_error': valid_err,
                 })
+
+def _lerp_data(data, N):
+    length = len(data)
+    lerp_data = [0] * (N * (length - 1) + 1)
+
+    for i in range(length - 1):
+        start = data[i]
+        end = data[i + 1]
+        step = (end - start) / N
+
+        for j in range(N):
+            lerp_data[i * N + j] = start + j * step
+
+    lerp_data[-1] = data[-1]
+
+    return lerp_data
