@@ -17,7 +17,7 @@ model = ImageClassifier(depth=depth)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=initial_lr)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, eps=1e-24)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 90, 120], gamma=0.1)
 
 evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs)
 
@@ -26,12 +26,12 @@ evaluator.output_stats(evaluator.eval_model(train_dataloader))
 print("Starting Training...")
 
 for epoch in range(num_epochs):
-    print(f"---> Epoch {epoch + 1}, lr = {optimizer.param_groups[0]['lr']:.2e}")
+    print(f"---> Epoch {epoch + 1}, lr = {scheduler.get_lr()[0]:.2e}")
 
     _, train_loss, _ = train_result = evaluator.train_model()
 
     evaluator.output_stats(train_result)
 
-    scheduler.step(train_loss)
+    scheduler.step()
 
 print("Finished Training!")
