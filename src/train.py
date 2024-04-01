@@ -5,7 +5,7 @@ from load_dataset import get_dataloader
 from model import ImageClassifier
 from evaluate import Evaluator
 
-num_epochs = 160
+num_iterations = 64000
 batch_size = 128
 initial_lr = 0.01
 depth = 12
@@ -15,7 +15,9 @@ valid_dataloader = get_dataloader("valid", batch_size=batch_size)
 
 print(f"Train Num Batches: {len(train_dataloader)}")
 print(f"Valid Num Batches: {len(valid_dataloader)}")
-print(f"Iterations: {num_epochs * len(train_dataloader)}")
+print(f"Iterations: {num_iterations}")
+
+num_epochs = num_iterations // len(train_dataloader) + 1
 
 model = ImageClassifier(depth=depth)
 

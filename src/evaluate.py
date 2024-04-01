@@ -106,8 +106,8 @@ class Evaluator:
         fig, ax1 = plt.subplots(figsize=(8, 6))
         ax2 = ax1.twinx()
 
-        train_loss_line = ax1.plot(self.train_loss_history, linewidth=2, color='#FDB813', label='Train Loss')
-        valid_loss_line = ax1.plot(self.valid_loss_history, linewidth=2, color='#B2D732', label='Valid Loss')
+        train_loss_line = ax1.plot(self.train_loss_history, linewidth=2, alpha=0.5, color='#FDB813', label='Train Loss')
+        valid_loss_line = ax1.plot(self.valid_loss_history, linewidth=2, alpha=0.5, color='#B2D732', label='Valid Loss')
         ax1.set_xlabel('Epochs')
         ax1.set_ylabel('Loss')
         ax1.set_xlim(0, self.num_epochs)
@@ -119,7 +119,7 @@ class Evaluator:
         valid_err_line = ax2.plot(self.valid_err_history, linewidth=1, linestyle="dashed", color='#87CB16', label='Valid Error')
         ax2.set_ylabel('Error')
         ax2.set_xlim(0, self.num_epochs)
-        ax2.set_ylim(0, 100)
+        ax2.set_ylim(0, 50)
         ax2.grid(True)
 
         lines = train_loss_line + valid_loss_line + train_err_line + valid_err_line
