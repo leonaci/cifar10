@@ -5,8 +5,9 @@ from load_dataset import get_dataloader
 from model import ImageClassifier
 from evaluate import Evaluator
 
-num_iterations = 64000
-batch_size = 128
+n = 4
+num_epochs = 80*n
+batch_size = 32*n
 initial_lr = 0.01
 depth = 12
 
@@ -15,15 +16,13 @@ valid_dataloader = get_dataloader("valid", batch_size=batch_size)
 
 print(f"Train Num Batches: {len(train_dataloader)}")
 print(f"Valid Num Batches: {len(valid_dataloader)}")
-print(f"Iterations: {num_iterations}")
-
-num_epochs = num_iterations // len(train_dataloader) + 1
+print(f"Iterations: {num_epochs * len(train_dataloader)}")
 
 model = ImageClassifier(depth=depth)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=initial_lr)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 120], gamma=0.1)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[num_epochs//2, num_epochs//4*3], gamma=0.1)
 
 evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs)
 
