@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from resnet import ResNetBlock
+from resnet import ResNetBlock, ResNetBottleNeck
 
 class ImageClassifier(nn.Module):
     def __init__(self, depth=2):
@@ -26,31 +26,31 @@ class ImageClassifier(nn.Module):
         )
 
         ## (batch_size, 64, 16, 16) -> (batch_size, 128, 8, 8)
-        self.layer1 = ResNetBlock(in_channels=64, out_channels=128, stride=2)
+        self.layer1 = ResNetBottleNeck(in_channels=64, out_channels=128, stride=2)
 
         layers = []
         for _ in range(self.depth):
-            layers.append(ResNetBlock(in_channels=128, out_channels=128))
+            layers.append(ResNetBottleNeck(in_channels=128, out_channels=128))
         
         ## (batch_size, 128, 8, 8) -> (batch_size, 128, 8, 8)
         self.conv1 = nn.Sequential(*layers)
 
         ## (batch_size, 128, 8, 8) -> (batch_size, 256, 4, 4)
-        self.layer2 = ResNetBlock(in_channels=128, out_channels=256, stride=2)
+        self.layer2 = ResNetBottleNeck(in_channels=128, out_channels=256, stride=2)
 
         layers = []
         for _ in range(self.depth):
-            layers.append(ResNetBlock(in_channels=256, out_channels=256))
+            layers.append(ResNetBottleNeck(in_channels=256, out_channels=256))
         
         ## (batch_size, 256, 4, 4) -> (batch_size, 256, 4, 4)
         self.conv2 = nn.Sequential(*layers)
 
         ## (batch_size, 256, 4, 4) -> (batch_size, 512, 2, 2)
-        self.layer3 = ResNetBlock(in_channels=256, out_channels=512, stride=2)
+        self.layer3 = ResNetBottleNeck(in_channels=256, out_channels=512, stride=2)
 
         layers = []
         for _ in range(self.depth):
-            layers.append(ResNetBlock(in_channels=512, out_channels=512))
+            layers.append(ResNetBottleNeck(in_channels=512, out_channels=512))
 
         ## (batch_size, 512, 2, 2) -> (batch_size, 512, 2, 2)
         self.conv3 = nn.Sequential(*layers)
@@ -68,6 +68,8 @@ class ImageClassifier(nn.Module):
         for m in self.modules():
             if isinstance(m, ResNetBlock):
                nn.init.constant_(m.bn2.weight, 0)
+            if isinstance(m, ResNetBottleNeck):
+               nn.init.constant_(m.bn3.weight, 0)
 
     def forward(self, x):
         x = self.input_layer(x)
