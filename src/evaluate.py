@@ -18,9 +18,9 @@ class Evaluator:
         self.num_epochs = num_epochs
         
         self.train_loss_history = []
-        self.train_acc_history = []
+        self.train_err_history = []
         self.valid_loss_history = []
-        self.valid_acc_history = []
+        self.valid_err_history = []
         self.min_valid_loss = float('inf')
 
         model.to(self.device)
@@ -29,7 +29,7 @@ class Evaluator:
         self.model.train()
 
         dataloader = self.train_dataloader
-        running_loss = 0.0; num_correct = 0.0; total = 0
+        running_loss = 0.0; num_incorrect = 0; total = 0
 
         start_time = time.time()
         for inputs, labels in dataloader:
@@ -46,16 +46,16 @@ class Evaluator:
             self.optimizer.step()
 
             _, predicted = torch.max(outputs.data, 1)
-            num_correct += (predicted == labels).sum().item()
+            num_incorrect += (predicted != labels).sum().item()
             total += labels.size(0)
         end_time = time.time()
 
-        return 1000 * (end_time - start_time) / len(dataloader), running_loss / len(dataloader), 100 * num_correct  / total
+        return 1000 * (end_time - start_time) / len(dataloader), running_loss / len(dataloader), 100 * num_incorrect  / total
 
     def eval_model(self, dataloader):
         self.model.eval()
 
-        running_loss = 0.0; num_correct = 0.0; total = 0
+        running_loss = 0.0; num_incorrect = 0; total = 0
 
         start_time = time.time()
         for inputs, labels in dataloader:
@@ -67,24 +67,24 @@ class Evaluator:
             running_loss += loss.item()
 
             _, predicted = torch.max(outputs.data, 1)
-            num_correct += (predicted == labels).sum().item()
+            num_incorrect += (predicted != labels).sum().item()
             total += labels.size(0)
         end_time = time.time()
 
-        return 1000 * (end_time - start_time) / len(dataloader), running_loss / len(dataloader), 100 * num_correct / total
+        return 1000 * (end_time - start_time) / len(dataloader), running_loss / len(dataloader), 100 * num_incorrect / total
 
     def output_stats(self, train_result:Tuple[float, float, float]):
         self.model.eval()
 
-        train_time, train_loss, train_acc = train_result
-        eval_time, valid_loss, valid_acc = self.eval_model(self.valid_dataloader)
+        train_time, train_loss, train_err = train_result
+        eval_time, valid_loss, valid_err = self.eval_model(self.valid_dataloader)
 
         print(f"    Train Time: {train_time:.2f}ms")
         print(f"    Train Loss: {train_loss:.4f}")
-        print(f"    Train Accuracy: {train_acc:.2f}%")
+        print(f"    Train Error: {train_err:.2f}%")
         print(f"    Eval Time: {eval_time:.2f}ms")
         print(f"    Valid Loss: {valid_loss:.4f}")
-        print(f"    Valid Accuracy: {valid_acc:.2f}%")
+        print(f"    Valid Error: {valid_err:.2f}%")
 
         if valid_loss < self.min_valid_loss:
             self.min_valid_loss = valid_loss
@@ -94,9 +94,9 @@ class Evaluator:
                 print(f"saving model failed: {e}")
 
         self.train_loss_history.append(train_loss)
-        self.train_acc_history.append(train_acc)
+        self.train_err_history.append(train_err)
         self.valid_loss_history.append(valid_loss)
-        self.valid_acc_history.append(valid_acc)
+        self.valid_err_history.append(valid_err)
 
         self._save_graph()
         self._save_csv()
@@ -115,33 +115,33 @@ class Evaluator:
         # ax1.set_ylim(ymax=1)
         # ax1.set_yscale('log')
 
-        train_acc_line = ax2.plot(self.train_acc_history, linewidth=1, linestyle="dashed", color='#FD7F20', label='Train Accuracy')
-        valid_acc_line = ax2.plot(self.valid_acc_history, linewidth=1, linestyle="dashed", color='#87CB16', label='Valid Accuracy')
-        ax2.set_ylabel('Accuracy')
+        train_err_line = ax2.plot(self.train_err_history, linewidth=1, linestyle="dashed", color='#FD7F20', label='Train Error')
+        valid_err_line = ax2.plot(self.valid_err_history, linewidth=1, linestyle="dashed", color='#87CB16', label='Valid Error')
+        ax2.set_ylabel('Error')
         ax2.set_xlim(0, self.num_epochs)
         ax2.set_ylim(0, 100)
         ax2.grid(True)
 
-        lines = train_loss_line + valid_loss_line + train_acc_line + valid_acc_line
+        lines = train_loss_line + valid_loss_line + train_err_line + valid_err_line
         labels = map(lambda line: line.get_label(), lines)
         plt.legend(lines, labels, loc='lower left')
 
-        plt.title('Loss and Accuracy')
-        plt.savefig('../data/loss_and_accuracy.png')
+        plt.title('Loss and Error')
+        plt.savefig('../data/loss_and_error.png')
         plt.close()
 
     def _save_csv(self):
-        with open('../data/loss_and_accuracy.csv', 'w', newline='') as csvfile:
-            fieldnames = ['epoch', 'train_loss', 'valid_loss', 'train_accuracy', 'valid_accuracy']
+        with open('../data/loss_and_error.csv', 'w', newline='') as csvfile:
+            fieldnames = ['epoch', 'train_loss', 'valid_loss', 'train_error', 'valid_error']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
 
             epochs = range(0, len(self.train_loss_history) + 1)
-            for epoch, train_loss, valid_loss, train_acc, valid_acc in zip(epochs, self.train_loss_history, self.valid_loss_history, self.train_acc_history, self.valid_acc_history):
+            for epoch, train_loss, valid_loss, train_err, valid_err in zip(epochs, self.train_loss_history, self.valid_loss_history, self.train_err_history, self.valid_err_history):
                 writer.writerow({
                     'epoch': epoch,
                     'train_loss': train_loss,
                     'valid_loss': valid_loss,
-                    'train_accuracy': train_acc,
-                    'valid_accuracy': valid_acc,
+                    'train_error': train_err,
+                    'valid_error': valid_err,
                 })
