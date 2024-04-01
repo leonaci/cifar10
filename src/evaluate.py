@@ -5,7 +5,7 @@ import csv
 import time
 
 class Evaluator:
-    def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs):
+    def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs, args):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         print(f"Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
@@ -16,6 +16,8 @@ class Evaluator:
         self.criterion = criterion
         self.optimizer = optimizer
         self.num_epochs = num_epochs
+        self.csv_path = f"../data/{args.csv_path}-{args.suffix}.csv"
+        self.plot_path = f"../data/{args.plot_path}-{args.suffix}.png"
         
         self.train_loss_history = []
         self.train_err_history = []
@@ -133,11 +135,11 @@ class Evaluator:
         plt.legend(lines, labels, loc='lower left')
 
         plt.title('Loss and Error')
-        plt.savefig('../data/loss_and_error.png')
+        plt.savefig(f"{self.output_dir}/{self.plot_path}")
         plt.close()
 
     def _save_csv(self):
-        with open('../data/loss_and_error.csv', 'w', newline='') as csvfile:
+        with open(f"{self.output_dir}/{self.csv_path}", 'w', newline='') as csvfile:
             fieldnames = ['epoch', 'train_loss', 'valid_loss', 'train_error', 'valid_error']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()

@@ -4,12 +4,21 @@ import torch.optim as optim
 from load_dataset import get_dataloader
 from model import ImageClassifier
 from evaluate import Evaluator
+import argparse
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--csv-path", type=str, default="loss_and_error")
+argparser.add_argument("--csv-suffix", type=str, default="")
+argparser.add_argument("--plot-path", type=str, default="loss_and_error")
+argparser.add_argument("--plot-suffix", type=str, default="")
+
+args = argparser.parse_args()
 
 n = 4
 num_epochs = 80*n
 batch_size = 32*n
 initial_lr = 0.01
-depth = 12
+depth = 0
 
 train_dataloader = get_dataloader("train", batch_size=batch_size)
 valid_dataloader = get_dataloader("valid", batch_size=batch_size)
