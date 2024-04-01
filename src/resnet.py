@@ -35,12 +35,13 @@ class ResNetBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int = 1, short: bool = True):
         super().__init__()
 
-        self.conv1 = conv3x3(in_channels, out_channels, stride)
-        self.bn1 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
 
+        self.conv1 = conv3x3(in_channels, out_channels, stride)
+        self.bn1 = nn.BatchNorm2d(out_channels)
         self.conv2 = conv3x3(out_channels, out_channels)
         self.bn2 = nn.BatchNorm2d(out_channels)
+        self.bn3 = nn.BatchNorm2d(out_channels)
 
         if in_channels == out_channels and stride == 1:
             self.shortcut = nn.Identity()
@@ -54,16 +55,15 @@ class ResNetBlock(nn.Module):
 
 
     def forward(self, x: Tensor) -> Tensor:
-        out = self.conv1(x)
         out = self.bn1(out)
+        out = self.conv1(x)
+        out = self.bn2(out)
         out = self.relu(out)
         out = self.conv2(out)
-        out = self.bn2(out)
+        out = self.bn3(out)
 
         if self.short:
             out += self.shortcut(x)
-
-        out = self.relu(out)
 
         return out
 
