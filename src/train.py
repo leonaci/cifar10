@@ -7,7 +7,10 @@ from evaluate import Evaluator
 import argparse
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument("--depth", type=int, default=0)
+argparser.add_argument("--num-epochs", type=int, default=500)
+argparser.add_argument("--batch-size", type=int, default=256)
+argparser.add_argument("--initial-lr", type=float, default=0.01)
+argparser.add_argument("--num-layers", type=str, default="")
 argparser.add_argument("--data-dir", type=str, default="")
 argparser.add_argument("--csv-path", type=str, default="loss_and_error")
 argparser.add_argument("--plot-path", type=str, default="loss_and_error")
@@ -18,10 +21,11 @@ argparser.add_argument("--output-weight", type=bool, default=False)
 
 args = argparser.parse_args()
 
-num_epochs = 500
-batch_size = 256
-initial_lr = 0.01
-depth = args.depth
+num_layers = list(map(int, args.num_layers.split(",")))
+
+num_epochs = args.num_epochs
+batch_size = args.batch_size
+initial_lr = args.initial_lr
 
 train_dataloader = get_dataloader("train", batch_size=batch_size)
 valid_dataloader = get_dataloader("valid", batch_size=batch_size)
@@ -30,7 +34,7 @@ print(f"Train Num Batches: {len(train_dataloader)}")
 print(f"Valid Num Batches: {len(valid_dataloader)}")
 print(f"Iterations: {num_epochs * len(train_dataloader)}")
 
-model = ImageClassifier(depth=depth)
+model = ImageClassifier(num_layers=num_layers)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=initial_lr)
