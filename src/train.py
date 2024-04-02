@@ -18,9 +18,8 @@ argparser.add_argument("--output-weight", type=bool, default=False)
 
 args = argparser.parse_args()
 
-n = 4
-num_epochs = 80*n
-batch_size = 32*n
+num_epochs = 500
+batch_size = 256
 initial_lr = 0.01
 depth = args.depth
 
