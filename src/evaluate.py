@@ -1,3 +1,4 @@
+import os
 from typing import Tuple
 import torch
 import matplotlib.pyplot as plt
@@ -18,9 +19,18 @@ class Evaluator:
         self.num_epochs = num_epochs
 
         suffix = "" if args.suffix == '' else f"-{args.suffix}"
-        self.csv_path = f"../data/{args.csv_path}{suffix}.csv"
-        self.plot_path = f"../data/{args.plot_path}{suffix}.png"
-        self.weight_path = f"../weights/{args.weight_path}{suffix}.pth"
+
+        data_dir = os.path.join("../data", args.data_dir)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+        self.csv_path = os.path.join(data_dir, args.csv_path + suffix + ".csv")
+        self.plot_path = os.path.join(data_dir, args.plot_path + suffix + ".png")
+
+        weight_dir = os.path.join("../weights", args.weight_dir)
+        if not os.path.exists(weight_dir):
+            os.makedirs(weight_dir)
+        self.weight_path = os.path.join(weight_dir, args.weight_path + suffix + ".pth")
+        self.output_weight = args.output_weight
 
         self.train_loss_history = []
         self.train_err_history = []
@@ -91,10 +101,10 @@ class Evaluator:
         print(f"    Valid Loss: {valid_loss:.4f}")
         print(f"    Valid Error: {valid_err:.2f}%")
 
-        if valid_loss < self.min_valid_loss:
+        if self.output_weight and valid_loss < self.min_valid_loss:
             self.min_valid_loss = valid_loss
             try:
-                torch.save(self.model.state_dict(), "../weights/model.pth")
+                torch.save(self.model.state_dict(), self.weight_path)
             except IOError as e:
                 print(f"saving model failed: {e}")
 

@@ -7,10 +7,14 @@ from evaluate import Evaluator
 import argparse
 
 argparser = argparse.ArgumentParser()
+argparser.add_argument("--depth", type=int, default=0)
+argparser.add_argument("--data-dir", type=str, default="")
 argparser.add_argument("--csv-path", type=str, default="loss_and_error")
 argparser.add_argument("--plot-path", type=str, default="loss_and_error")
+argparser.add_argument("--weight-dir", type=str, default="")
 argparser.add_argument("--weight-path", type=str, default="model")
 argparser.add_argument("--suffix", type=str, default="")
+argparser.add_argument("--output-weight", type=bool, default=False)
 
 args = argparser.parse_args()
 
@@ -18,7 +22,7 @@ n = 4
 num_epochs = 80*n
 batch_size = 32*n
 initial_lr = 0.01
-depth = 0
+depth = args.depth
 
 train_dataloader = get_dataloader("train", batch_size=batch_size)
 valid_dataloader = get_dataloader("valid", batch_size=batch_size)
