@@ -1,4 +1,5 @@
 import os
+from . import PROJECT_ROOT
 import torch
 from torch.utils.data import DataLoader
 import torchvision.transforms as T
@@ -38,7 +39,7 @@ def get_dataloader(phase, batch_size):
     shuffle = True if phase == 'train' else False
     transform = train_transform if phase == 'train' else valid_transform
     
-    train_dataset = CIFAR10(root='../dataset', train=train, download=True, transform=transform)
+    train_dataset = CIFAR10(root=os.path.join(PROJECT_ROOT, "dataset"), train=train, download=True, transform=transform)
     dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=os.cpu_count(), pin_memory=True)
     
     return dataloader

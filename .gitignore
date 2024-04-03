@@ -1,4 +1,5 @@
 venv
 *.code-workspace
-src/__pycache__
+__pycache__
+cifar10/__pycache__
 dataset

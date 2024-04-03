@@ -1,4 +1,5 @@
 import os
+from . import DEVICE
 from typing import Tuple
 import torch
 import matplotlib.pyplot as plt
@@ -6,11 +7,7 @@ import csv
 import time
 
 class Evaluator:
-    def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs, args):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        print(f"Using device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
-
+    def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs, config):
         self.model = model
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
@@ -18,19 +15,35 @@ class Evaluator:
         self.optimizer = optimizer
         self.num_epochs = num_epochs
 
-        suffix = "" if args.suffix == '' else f"-{args.suffix}"
+        csv_path = [config.csv_path]
+        plot_path = [config.plot_path]
 
-        data_dir = os.path.join("../data", args.data_dir)
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
-        self.csv_path = os.path.join(data_dir, args.csv_path + suffix + ".csv")
-        self.plot_path = os.path.join(data_dir, args.plot_path + suffix + ".png")
+        if config.suffix != "":
+            csv_path.append(config.suffix)
+            plot_path.append(config.suffix)
 
-        weight_dir = os.path.join("../weights", args.weight_dir)
-        if not os.path.exists(weight_dir):
-            os.makedirs(weight_dir)
-        self.weight_path = os.path.join(weight_dir, args.weight_path + suffix + ".pth")
-        self.output_weight = args.output_weight
+        csv_path = "-".join(csv_path) + ".csv"
+        plot_path = "-".join(plot_path) + ".png"
+
+        if not os.path.exists(config.data_dir):
+            os.makedirs(config.data_dir)
+
+        self.csv_path = os.path.join(config.data_dir, csv_path)
+        self.plot_path = os.path.join(config.data_dir, plot_path)
+
+        self.weight_path = None
+        if config.weight_path is not None:
+            weight_path = [config.weight_path]
+
+            if config.suffix != "":
+                weight_path.append(config.suffix)
+            
+            weight_path = "-".join(weight_path) + ".pth"
+
+            if not os.path.exists(config.weight_dir):
+                os.makedirs(config.weight_dir)
+
+            self.weight_path = os.path.join(config.weight_dir, weight_path)
 
         self.train_loss_history = []
         self.train_err_history = []
@@ -38,7 +51,7 @@ class Evaluator:
         self.valid_err_history = []
         self.min_valid_loss = float('inf')
 
-        model.to(self.device)
+        model.to(DEVICE)
 
     def train_model(self):
         self.model.train()
@@ -48,8 +61,8 @@ class Evaluator:
 
         start_time = time.time()
         for inputs, labels in dataloader:
-            inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
+            inputs = inputs.to(DEVICE)
+            labels = labels.to(DEVICE)
 
             self.optimizer.zero_grad()
 
@@ -74,8 +87,8 @@ class Evaluator:
 
         start_time = time.time()
         for inputs, labels in dataloader:
-            inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
+            inputs = inputs.to(DEVICE)
+            labels = labels.to(DEVICE)
 
             outputs = self.model(inputs)
             loss = self.criterion(outputs, labels)
@@ -101,7 +114,7 @@ class Evaluator:
         print(f"    Valid Loss: {valid_loss:.4f}")
         print(f"    Valid Error: {valid_err:.2f}%")
 
-        if self.output_weight and valid_loss < self.min_valid_loss:
+        if self.weight_path is not None and valid_loss < self.min_valid_loss:
             self.min_valid_loss = valid_loss
             try:
                 torch.save(self.model.state_dict(), self.weight_path)
