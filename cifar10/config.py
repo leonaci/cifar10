@@ -10,6 +10,7 @@ class Config:
     batch_size: int = field(default=None)
     initial_lr: float = field(default=None)
     num_layers: list = field(default=None)
+    channels: list = field(default=None)
     data_dir: str = field(default="data")
     csv_path: str = field(default="loss_and_error")
     plot_path: str = field(default="loss_and_error")
@@ -23,6 +24,34 @@ class Config:
         if self.weight_dir:
             self.weight_dir = os.path.join(PROJECT_ROOT, self.weight_dir)
 
+    def validate(self):
+        error_log = []
+
+        if self.num_epochs is None:
+            error_log.append("`num_epochs` must be provided in config file.")
+
+        if self.num_epochs < 0:
+            error_log.append("`num_epochs` must be a positive integer.")
+
+        if self.batch_size is None:
+            error_log.append("`batch_size` must be provided in config file.")
+
+        if self.batch_size < 0:
+            error_log.append("`batch_size` must be a positive integer.")
+
+        if self.initial_lr is None:
+            error_log.append("`initial_lr` must be provided in config file.")
+
+        if self.initial_lr <= 0:
+            error_log.append("`initial_lr` must be a positive float.")
+
+        if self.channels is None:
+            error_log.append("`channels` must be provided in config file.")
+
+        if self.num_layers is not None and len(self.channels) != len(self.num_layers):
+            error_log.append("`channels` and `num_layers` must have the same length.")
+
+        return error_log
 
 def load_config(path):
     yaml_path = os.path.join(PROJECT_ROOT, path)
@@ -33,19 +62,12 @@ def load_config(path):
     if not config_dict:
         raise ValueError("Config file is empty.")
 
-    error_log = []
+    config = Config(**config_dict)
 
-    if config_dict.get("num_epochs") is None:
-        error_log.append("`num_epochs` must be provided in config file.")
-    if config_dict.get("batch_size") is None:
-        error_log.append("`batch_size` must be provided in config file.")
-    if config_dict.get("initial_lr") is None:
-        error_log.append("`initial_lr` must be provided in config file.")
+    error_log = config.validate()
 
     if error_log:
         raise ValueError("\n\t".join([""] + error_log))
-
-    config = Config(**config_dict)
 
     print(config)
 
