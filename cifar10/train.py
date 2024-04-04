@@ -34,13 +34,13 @@ def main(args):
     print("Starting Training...")
 
     for epoch in range(num_epochs):
-        if epoch == 20 and (train_loss > 2.0 or train_error > 80):
+        if epoch >= 20 and (train_loss > 2.0 or train_error > 80):
             print("Early stopping...")
             break
 
         print(f"---> Epoch {epoch + 1} / {num_epochs}, lr = {scheduler.get_lr()[0]:.2e}")
 
-        _, train_loss, _ = train_result = evaluator.train_model()
+        _, train_loss, train_error = train_result = evaluator.train_model()
 
         evaluator.output_stats(train_result)
 
