@@ -25,7 +25,7 @@ def main(args):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config.initial_lr)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[num_epochs//2, num_epochs//4*3], gamma=0.1)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=map(lambda x: x * num_epochs, config.milestones), gamma=0.1)
 
     evaluator = Evaluator(model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs, config)
 
@@ -34,6 +34,10 @@ def main(args):
     print("Starting Training...")
 
     for epoch in range(num_epochs):
+        if epoch == 20 and (train_loss > 2.0 or train_error > 80):
+            print("Early stopping...")
+            break
+
         print(f"---> Epoch {epoch + 1} / {num_epochs}, lr = {scheduler.get_lr()[0]:.2e}")
 
         _, train_loss, _ = train_result = evaluator.train_model()

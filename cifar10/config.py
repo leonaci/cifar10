@@ -9,6 +9,7 @@ class Config:
     num_epochs: int = field(default=None)
     batch_size: int = field(default=None)
     initial_lr: float = field(default=None)
+    milestones: list = field(default_factory=lambda: [0.5, 0.75])
     num_layers: list = field(default=None)
     channels: list = field(default=None)
     data_dir: str = field(default="data")
@@ -44,6 +45,10 @@ class Config:
 
         if self.initial_lr <= 0:
             error_log.append("`initial_lr` must be a positive float.")
+
+        for i in range(1, len(self.milestones)):
+            if self.milestones[i-1] >= self.milestones[i]:
+                error_log.append("`milestones` must be monotoniously increasing.")
 
         if self.channels is None:
             error_log.append("`channels` must be provided in config file.")
