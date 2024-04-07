@@ -5,6 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 import csv
 import time
+import math
 
 class Evaluator:
     def __init__(self, model, train_dataloader, valid_dataloader, criterion, optimizer, num_epochs, config):
@@ -195,3 +196,42 @@ def _lerp_data(data, N):
     lerp_data[-1] = data[-1]
 
     return lerp_data
+
+def display_images(images, output_dir, max_columns=10, max_rows=10):
+    num_images = len(images)
+    num_plots = math.ceil(num_images / (max_columns * max_rows))
+
+    os.system(f"rm -rf {output_dir}")
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    for plot_idx in range(num_plots):
+        start_idx = plot_idx * max_columns * max_rows
+        end_idx = min((plot_idx + 1) * max_columns * max_rows, num_images)
+        plot_images = images[start_idx:end_idx]
+
+        num_plot_images = len(plot_images)
+        num_rows = (num_plot_images + max_columns - 1) // max_columns
+        num_columns = min(num_plot_images, max_columns)
+
+        _, axes = plt.subplots(num_rows, num_columns, figsize=(3*num_columns, 3*num_rows))
+
+        for i, (img, label) in enumerate(plot_images):
+            row = i // num_columns
+            col = i % num_columns
+            ax = axes[row, col] if num_rows > 1 else axes[col]
+
+            # PIL Imageを直接表示
+            ax.imshow(img)
+            ax.set_axis_off()
+            ax.set_title(label)
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f'overview_{plot_idx}.png'))
+
+        print(f"Saved images to {output_dir}/overview_{plot_idx}.png")
+
+        plt.close()
+
+    print(f"Saved {num_images} images to {output_dir}")
