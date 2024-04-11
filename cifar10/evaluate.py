@@ -39,7 +39,7 @@ class Evaluator:
             if config.suffix != "":
                 weight_path.append(config.suffix)
             
-            weight_path = "-".join(weight_path) + ".pth"
+            weight_path = "-".join(weight_path)
 
             if not os.path.exists(config.weight_dir):
                 os.makedirs(config.weight_dir)
@@ -51,6 +51,7 @@ class Evaluator:
         self.valid_loss_history = []
         self.valid_err_history = []
         self.min_valid_loss = float('inf')
+        self.min_valid_err = 100
 
         model.to(DEVICE)
 
@@ -115,12 +116,7 @@ class Evaluator:
         print(f"    Valid Loss: {valid_loss:.4f}")
         print(f"    Valid Error: {valid_err:.2f}%")
 
-        if self.weight_path is not None and valid_loss < self.min_valid_loss:
-            self.min_valid_loss = valid_loss
-            try:
-                torch.save(self.model.state_dict(), self.weight_path)
-            except IOError as e:
-                print(f"saving model failed: {e}")
+        self.output_model(valid_loss, valid_err)
 
         self.train_loss_history.append(train_loss)
         self.train_err_history.append(train_err)
@@ -129,6 +125,17 @@ class Evaluator:
 
         self._save_graph()
         self._save_csv()
+
+    def output_model(self, valid_loss, valid_err):
+        if self.weight_path is not None and valid_err < self.min_valid_err:
+            self.min_valid_loss = valid_loss
+            self.min_valid_err = valid_err
+            try:
+                dummy_input = torch.randn(128, 3, 32, 32).to(DEVICE)
+                torch.onnx.export(self.model, dummy_input, self.weight_path + ".onnx")
+                torch.save(self.model.state_dict(), self.weight_path + ".pth")
+            except IOError as e:
+                print(f"saving model failed: {e}")
 
     def _save_graph(self):
         num_batches = len(self.train_dataloader)

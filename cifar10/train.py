@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.optim as optim
 from .load_dataset import get_dataloader
@@ -22,6 +23,9 @@ def main(args):
     print(f"Iterations: {num_epochs * len(train_dataloader)}")
 
     model = ImageClassifier(config)
+
+    if config.source_weights is not None:
+        model.load_state_dict(torch.load(config.source_weights))
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config.initial_lr)

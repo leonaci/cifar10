@@ -18,6 +18,7 @@ class Config:
     weight_dir: str = field(default="weights")
     weight_path: str = field(default=None)
     suffix: str = field(default="")
+    source_weights: str = field(default=None)
 
     def __post_init__(self):
         if self.data_dir:
